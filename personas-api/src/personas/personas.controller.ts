@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseFilePipe,
   Post,
@@ -53,6 +55,12 @@ export class PersonasController {
     @Body() dto: UpdatePersonaDto,
   ): Promise<Persona> {
     return this.personas.actualizar(validarDni(dni), dto);
+  }
+
+  @Delete(':dni')
+  @HttpCode(204)
+  eliminar(@Param('dni') dni: string): Promise<void> {
+    return this.personas.eliminar(validarDni(dni));
   }
 
   @Post(':dni/foto')

@@ -38,6 +38,13 @@ export class PersonasService {
     return this.repo.save(this.repo.merge(p, dto));
   }
 
+  async eliminar(dni: string): Promise<void> {
+    const p = await this.buscar(dni);
+    await this.repo.remove(p);
+    if (p.fotoRuta)
+      await unlink(join(process.cwd(), p.fotoRuta)).catch(() => undefined);
+  }
+
   async guardarFoto(dni: string, archivo: string): Promise<Persona> {
     const p = await this.buscar(dni);
     const anterior = p.fotoRuta;

@@ -93,6 +93,22 @@ class PersonaViewModel : ViewModel() {
         }
     }
 
+    fun eliminar(p: Persona) {
+        viewModelScope.launch {
+            try {
+                val r = api.eliminar(p.dni)
+                if (r.isSuccessful || r.code() == 404) {
+                    lista = lista?.filterNot { it.dni == p.dni }
+                    if (state.existente && state.dni == p.dni) nuevo()
+                    msg("${p.nombres} ${p.apellidos} eliminado/a")
+                } else msg("Error del servidor (${r.code()})")
+            } catch (e: Exception) {
+                Log.e("PERSONA", "Fallo de red", e)
+                msg("No hay conexión con el servidor")
+            }
+        }
+    }
+
     /** Carga en el formulario una persona elegida de la lista. */
     fun seleccionar(p: Persona) {
         state.fotoLocal?.let { File(it).delete() }

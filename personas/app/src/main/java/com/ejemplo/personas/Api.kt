@@ -36,6 +36,9 @@ interface PersonaApi {
     @PUT("personas/{dni}")
     suspend fun actualizar(@Path("dni") dni: String, @Body p: Persona): Response<Persona>
 
+    @DELETE("personas/{dni}")
+    suspend fun eliminar(@Path("dni") dni: String): Response<Unit>
+
     @Multipart
     @POST("personas/{dni}/foto")
     suspend fun subirFoto(@Path("dni") dni: String, @Part foto: MultipartBody.Part): Response<Persona>

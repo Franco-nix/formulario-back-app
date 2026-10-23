@@ -22,11 +22,31 @@ import coil.compose.AsyncImage
 @Composable
 fun PersonasListaScreen(vm: PersonaViewModel, onVolver: () -> Unit) {
     val lista = vm.lista
+    val snackbar = remember { SnackbarHostState() }
+    var aEliminar by remember { mutableStateOf<Persona?>(null) }
 
     LaunchedEffect(Unit) { vm.cargarLista() }
+    LaunchedEffect(vm.state.mensaje) {
+        vm.state.mensaje?.let { snackbar.showSnackbar(it); vm.limpiarMensaje() }
+    }
     BackHandler(onBack = onVolver)
 
+    aEliminar?.let { p ->
+        AlertDialog(
+            onDismissRequest = { aEliminar = null },
+            title = { Text("Eliminar persona") },
+            text = { Text("¿Seguro que quieres eliminar a ${p.nombres} ${p.apellidos}?") },
+            confirmButton = {
+                TextButton(onClick = { vm.eliminar(p); aEliminar = null }) {
+                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { aEliminar = null }) { Text("Cancelar") } }
+        )
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbar) },
         topBar = {
             TopAppBar(
                 title = { Text("Personas guardadas") },
@@ -45,7 +65,11 @@ fun PersonasListaScreen(vm: PersonaViewModel, onVolver: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(lista, key = { it.dni }) { p ->
-                        PersonaCard(p) { vm.seleccionar(p); onVolver() }
+                        PersonaCard(
+                            p,
+                            onClick = { vm.seleccionar(p); onVolver() },
+                            onEliminar = { aEliminar = p }
+                        )
                     }
                 }
             }
@@ -54,7 +78,7 @@ fun PersonasListaScreen(vm: PersonaViewModel, onVolver: () -> Unit) {
 }
 
 @Composable
-fun PersonaCard(p: Persona, onClick: () -> Unit) {
+fun PersonaCard(p: Persona, onClick: () -> Unit, onEliminar: () -> Unit) {
     ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier.padding(12.dp),
@@ -87,6 +111,9 @@ fun PersonaCard(p: Persona, onClick: () -> Unit) {
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            TextButton(onClick = onEliminar) {
+                Text("Eliminar", color = MaterialTheme.colorScheme.error)
             }
         }
     }
