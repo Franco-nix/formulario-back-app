@@ -44,7 +44,7 @@ interface PersonaApi {
 object ApiClient {
     // Emulador: 10.0.2.2 apunta al localhost de tu PC.
     // Celular físico: usa la IP LAN de tu PC, ej. "http://192.168.1.50:8080/"
-    const val BASE_URL = "http://10.0.2.2:8080/"
+    const val BASE_URL = "http://192.168.100.180:8080/"
 
     // coerceInputValues: si el backend manda null en un campo opcional, se usa "" por defecto
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; coerceInputValues = true }
