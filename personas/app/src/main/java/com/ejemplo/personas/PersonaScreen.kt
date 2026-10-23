@@ -79,20 +79,15 @@ fun PersonaScreen(vm: PersonaViewModel = viewModel(), onVerLista: () -> Unit) {
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) { Text(if (s.foto == null) "Tomar foto" else "Cambiar foto") }
 
-            // --- DNI + Buscar ---
-            Row(verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = s.dni,
-                    onValueChange = { v -> if (v.length <= 8 && v.all(Char::isDigit)) vm.editar { it.copy(dni = v) } },
-                    label = { Text("DNI") },
-                    singleLine = true,
-                    enabled = !s.existente,   // la PK no se edita
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-                Button(onClick = vm::buscar, enabled = !s.existente) { Text("Buscar") }
-            }
+            OutlinedTextField(
+                value = s.dni,
+                onValueChange = { v -> if (v.length <= 8 && v.all(Char::isDigit)) vm.editar { it.copy(dni = v) } },
+                label = { Text("DNI") },
+                singleLine = true,
+                enabled = !s.existente,   // la PK no se edita
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
 
             OutlinedTextField(s.nombres, { v -> vm.editar { it.copy(nombres = v) } },
                 label = { Text("Nombres") }, singleLine = true, modifier = Modifier.fillMaxWidth())

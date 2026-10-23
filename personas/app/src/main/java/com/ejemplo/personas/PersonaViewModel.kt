@@ -76,25 +76,6 @@ class PersonaViewModel : ViewModel() {
         fotoPendiente = null
     }
 
-    // ---- Buscar ----
-    fun buscar() {
-        if (state.dni.length != 8) return msg("Ingresa un DNI de 8 dígitos")
-        viewModelScope.launch {
-            try {
-                val r = api.buscar(state.dni)
-                when {
-                    r.isSuccessful -> state = r.body()!!.toForm()
-                        .copy(fotoLocal = state.fotoLocal, mensaje = "Persona encontrada")
-                    r.code() == 404 -> msg("No existe una persona con ese DNI")
-                    else -> msg("Error del servidor (${r.code()})")
-                }
-            } catch (e: Exception) {
-                Log.e("PERSONA", "Fallo de red", e)
-                msg("Error: ${e::class.simpleName} - ${e.message}")
-            }
-        }
-    }
-
     // ---- Lista ----
     fun cargarLista() {
         lista = null
@@ -142,7 +123,7 @@ class PersonaViewModel : ViewModel() {
                         val ok = if (s.existente) "Datos actualizados" else "Persona guardada"
                         msg(if (subirFotoPendiente(p.dni)) ok else "$ok, pero no se pudo subir la foto")
                     }
-                    r.code() == 409 -> msg("Ese DNI ya existe. Usa Buscar para editarlo")
+                    r.code() == 409 -> msg("Ese DNI ya existe. Ábrelo desde Ver lista para editarlo")
                     r.code() == 400 -> msg("Datos inválidos según el servidor")
                     else -> msg("Error del servidor (${r.code()})")
                 }
