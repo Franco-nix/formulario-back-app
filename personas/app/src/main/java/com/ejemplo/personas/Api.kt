@@ -24,6 +24,9 @@ data class Persona(
 )
 
 interface PersonaApi {
+    @GET("personas")
+    suspend fun listar(): Response<List<Persona>>
+
     @GET("personas/{dni}")
     suspend fun buscar(@Path("dni") dni: String): Response<Persona>
 

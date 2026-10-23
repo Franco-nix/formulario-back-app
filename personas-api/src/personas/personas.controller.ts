@@ -32,6 +32,11 @@ function validarDni(dni: string): string {
 export class PersonasController {
   constructor(private readonly personas: PersonasService) {}
 
+  @Get()
+  listar(): Promise<Persona[]> {
+    return this.personas.listar();
+  }
+
   @Get(':dni')
   buscar(@Param('dni') dni: string): Promise<Persona> {
     return this.personas.buscar(validarDni(dni));

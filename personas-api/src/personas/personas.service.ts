@@ -16,6 +16,10 @@ export class PersonasService {
     @InjectRepository(Persona) private readonly repo: Repository<Persona>,
   ) {}
 
+  listar(): Promise<Persona[]> {
+    return this.repo.find({ order: { apellidos: 'ASC', nombres: 'ASC' } });
+  }
+
   async buscar(dni: string): Promise<Persona> {
     const p = await this.repo.findOneBy({ dni });
     if (!p) throw new NotFoundException(`No existe una persona con DNI ${dni}`);

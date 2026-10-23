@@ -25,7 +25,7 @@ import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PersonaScreen(vm: PersonaViewModel = viewModel()) {
+fun PersonaScreen(vm: PersonaViewModel = viewModel(), onVerLista: () -> Unit) {
     val s = vm.state
     val context = LocalContext.current
     val snackbar = remember { SnackbarHostState() }
@@ -38,13 +38,19 @@ fun PersonaScreen(vm: PersonaViewModel = viewModel()) {
         vm.onFotoResultado(ok)
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Registro de personas") },
+                actions = { TextButton(onClick = onVerLista) { Text("Ver lista") } }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbar) }
+    ) { padding ->
         Column(
             Modifier.padding(padding).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Registro de personas", style = MaterialTheme.typography.headlineSmall)
-
             // --- Foto ---
             Box(
                 Modifier.size(150.dp).align(Alignment.CenterHorizontally)

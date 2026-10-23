@@ -45,6 +45,12 @@ class PersonaViewModel : ViewModel() {
     var state by mutableStateOf(FormState())
         private set
 
+    /** Personas guardadas en el backend; null = cargando. */
+    var lista by mutableStateOf<List<Persona>?>(emptyList())
+        private set
+    var listaError by mutableStateOf<String?>(null)
+        private set
+
     private var fotoPendiente: String? = null
     private val api = ApiClient.api
 
@@ -87,6 +93,29 @@ class PersonaViewModel : ViewModel() {
                 msg("Error: ${e::class.simpleName} - ${e.message}")
             }
         }
+    }
+
+    // ---- Lista ----
+    fun cargarLista() {
+        lista = null
+        listaError = null
+        viewModelScope.launch {
+            try {
+                val r = api.listar()
+                if (r.isSuccessful) lista = r.body().orEmpty()
+                else listaError = "Error del servidor (${r.code()})"
+            } catch (e: Exception) {
+                Log.e("PERSONA", "Fallo de red", e)
+                listaError = "No hay conexión con el servidor"
+            }
+            if (listaError != null) lista = emptyList()
+        }
+    }
+
+    /** Carga en el formulario una persona elegida de la lista. */
+    fun seleccionar(p: Persona) {
+        state.fotoLocal?.let { File(it).delete() }
+        state = p.toForm()
     }
 
     // ---- Guardar / Actualizar ----
