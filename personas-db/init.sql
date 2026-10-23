@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXITS persona (
+CREATE TABLE IF NOT EXISTS persona (
     dni VARCHAR(8) PRIMARY KEY,
     nombres VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,

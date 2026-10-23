@@ -51,9 +51,9 @@ fun PersonaScreen(vm: PersonaViewModel = viewModel()) {
                     .clip(CircleShape).background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) {
-                if (s.fotoRuta != null) {
+                if (s.foto != null) {
                     AsyncImage(
-                        model = File(s.fotoRuta),
+                        model = s.foto,
                         contentDescription = "Foto",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -71,7 +71,7 @@ fun PersonaScreen(vm: PersonaViewModel = viewModel()) {
                     camara.launch(uri)
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) { Text(if (s.fotoRuta == null) "Tomar foto" else "Cambiar foto") }
+            ) { Text(if (s.foto == null) "Tomar foto" else "Cambiar foto") }
 
             // --- DNI + Buscar ---
             Row(verticalAlignment = Alignment.CenterVertically,

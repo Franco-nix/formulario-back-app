@@ -23,12 +23,16 @@ data class FormState(
     val profesion: String = "",
     val celular: String = "",
     val correo: String = "",
-    val fotoRuta: String? = null,
+    val fotoRuta: String? = null,     // foto ya guardada en el backend
+    val fotoLocal: String? = null,    // foto recién tomada, pendiente de subir
     val existente: Boolean = false,   // true = el registro ya está en BD (guardar = actualizar)
     val mensaje: String? = null
 ) {
     fun toPersona() = Persona(dni, nombres.trim(), apellidos.trim(), direccion.trim(),
         profesion, celular.trim(), correo.trim(), fotoRuta)
+
+    /** Lo que debe mostrarse en el círculo de la foto (archivo local o URL del backend). */
+    val foto: Any? get() = fotoLocal?.let(::File) ?: fotoRuta?.let(ApiClient::urlFoto)
 }
 
 private fun Persona.toForm() = FormState(
@@ -49,14 +53,20 @@ class PersonaViewModel : ViewModel() {
     fun limpiarMensaje() { state = state.copy(mensaje = null) }
 
     /** Opción "Nuevo": limpia todo el formulario. */
-    fun nuevo() { state = FormState() }
+    fun nuevo() {
+        state.fotoLocal?.let { File(it).delete() }
+        state = FormState()
+    }
 
     // ---- Foto ----
     fun prepararFoto(ruta: String) { fotoPendiente = ruta }
 
     fun onFotoResultado(ok: Boolean) {
         val ruta = fotoPendiente ?: return
-        if (ok) state = state.copy(fotoRuta = ruta) else File(ruta).delete()
+        if (ok) {
+            state.fotoLocal?.let { File(it).delete() }
+            state = state.copy(fotoLocal = ruta)
+        } else File(ruta).delete()
         fotoPendiente = null
     }
 
@@ -67,7 +77,8 @@ class PersonaViewModel : ViewModel() {
             try {
                 val r = api.buscar(state.dni)
                 when {
-                    r.isSuccessful -> state = r.body()!!.toForm().copy(mensaje = "Persona encontrada")
+                    r.isSuccessful -> state = r.body()!!.toForm()
+                        .copy(fotoLocal = state.fotoLocal, mensaje = "Persona encontrada")
                     r.code() == 404 -> msg("No existe una persona con ese DNI")
                     else -> msg("Error del servidor (${r.code()})")
                 }
@@ -97,14 +108,35 @@ class PersonaViewModel : ViewModel() {
                 val p = s.toPersona()
                 val r = if (s.existente) api.actualizar(p.dni, p) else api.crear(p)
                 when {
-                    r.isSuccessful -> state = state.copy(
-                        existente = true,
-                        mensaje = if (s.existente) "Datos actualizados" else "Persona guardada"
-                    )
+                    r.isSuccessful -> {
+                        state = state.copy(existente = true)
+                        val ok = if (s.existente) "Datos actualizados" else "Persona guardada"
+                        msg(if (subirFotoPendiente(p.dni)) ok else "$ok, pero no se pudo subir la foto")
+                    }
                     r.code() == 409 -> msg("Ese DNI ya existe. Usa Buscar para editarlo")
+                    r.code() == 400 -> msg("Datos inválidos según el servidor")
                     else -> msg("Error del servidor (${r.code()})")
                 }
-            } catch (e: Exception) { msg("No hay conexión con el servidor") }
+            } catch (e: Exception) {
+                Log.e("PERSONA", "Fallo de red", e)
+                msg("No hay conexión con el servidor")
+            }
+        }
+    }
+
+    /** Sube la foto local (si hay) y la reemplaza por la ruta del backend. */
+    private suspend fun subirFotoPendiente(dni: String): Boolean {
+        val local = state.fotoLocal ?: return true
+        return try {
+            val r = api.subirFoto(dni, ApiClient.parteFoto(File(local)))
+            if (r.isSuccessful) {
+                File(local).delete()
+                state = state.copy(fotoRuta = r.body()?.fotoRuta, fotoLocal = null)
+            }
+            r.isSuccessful
+        } catch (e: Exception) {
+            Log.e("PERSONA", "Fallo al subir foto", e)
+            false
         }
     }
 
